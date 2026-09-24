@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/Users/zlatovlas/Library/Application Support/Herd/bin/php84",
+            "args": [
+                "/Users/zlatovlas/projects/php/Arlysere-RDV/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
