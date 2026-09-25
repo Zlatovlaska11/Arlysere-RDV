@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('entry_custom_values', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('entry_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('custom_field_id')->constrained()->cascadeOnDelete();
+            $table->string('value')->nullable();
             $table->timestamps();
         });
     }

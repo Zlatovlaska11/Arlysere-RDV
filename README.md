@@ -1,58 +1,239 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Arlysere — RDV
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Outil interne de suivi d'activité terrain pour travailleurs sociaux. Saisie d'interventions (RDV, Collectif, Événements), filtrage, export Excel, et gestion des listes d'options par un admin.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Prérequis
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Outil | Version minimale |
+|-------|-----------------|
+| PHP | 8.3+ (extensions : `pdo_mysql`, `mbstring`, `xml`, `curl`, `zip`) |
+| Composer | 2.x |
+| Node.js | 18+ |
+| npm | 9+ |
+| MySQL | 8.0+ |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Installation locale (développement)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 1. Cloner le dépôt
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone <url-du-repo> arlysere
+cd arlysere
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Installer les dépendances
 
-## Contributing
+```bash
+composer install
+npm install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Configurer l'environnement
 
-## Code of Conduct
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Éditer `.env` et renseigner la base de données :
 
-## Security Vulnerabilities
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=arlysere
+DB_USERNAME=root
+DB_PASSWORD=your_password
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 4. Créer la base et migrer
 
-## License
+```bash
+# Créer la base de données MySQL d'abord :
+mysql -u root -p -e "CREATE DATABASE arlysere CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Puis migrer et seeder :
+php artisan migrate --seed
+```
+
+Le seeder crée deux comptes par défaut :
+
+| Rôle | Email | Mot de passe |
+|------|-------|-------------|
+| Admin | `admin@arlysere.local` | `password` |
+| Travailleur | `user@arlysere.local` | `password` |
+
+> **À faire** : changer ces mots de passe immédiatement en production.
+
+### 5. Compiler les assets
+
+```bash
+npm run build
+```
+
+### 6. Lancer le serveur de développement
+
+```bash
+composer run dev
+```
+
+L'app est accessible sur `http://localhost:8000`.
+
+---
+
+## Déploiement sur serveur (production)
+
+### Prérequis serveur
+
+- Linux (Ubuntu 22.04+ recommandé)
+- PHP 8.3+ avec extensions : `pdo_mysql mbstring xml curl zip opcache`
+- Composer, Node.js, npm
+- MySQL 8.0+
+- Nginx ou Apache
+- (Optionnel) Cloudflare Tunnel pour exposer sans port forwarding
+
+### 1. Déposer les fichiers
+
+```bash
+git clone <url-du-repo> /var/www/arlysere
+cd /var/www/arlysere
+
+composer install --no-dev --optimize-autoloader
+npm install
+npm run build
+```
+
+### 2. Configurer l'environnement
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+Renseigner `.env` pour la production :
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://votre-domaine.com
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=arlysere
+DB_USERNAME=arlysere_user
+DB_PASSWORD=mot_de_passe_fort
+
+SESSION_DRIVER=database
+CACHE_STORE=database
+QUEUE_CONNECTION=database
+```
+
+### 3. Migrer et seeder
+
+```bash
+php artisan migrate --seed --force
+```
+
+### 4. Permissions fichiers
+
+```bash
+chown -R www-data:www-data /var/www/arlysere
+chmod -R 755 /var/www/arlysere/storage
+chmod -R 755 /var/www/arlysere/bootstrap/cache
+```
+
+### 5. Configurer Nginx
+
+```nginx
+server {
+    listen 80;
+    server_name votre-domaine.com;
+    root /var/www/arlysere/public;
+
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+```
+
+Recharger Nginx : `sudo systemctl reload nginx`
+
+### 6. Optimiser pour la production
+
+```bash
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+---
+
+## Mise à jour
+
+Quand une nouvelle version est déployée :
+
+```bash
+git pull
+composer install --no-dev --optimize-autoloader
+npm install && npm run build
+php artisan migrate --force
+php artisan optimize:clear
+php artisan config:cache && php artisan route:cache && php artisan view:cache
+```
+
+---
+
+## Structure des rôles
+
+| Rôle | Accès |
+|------|-------|
+| **Travailleur** | Saisie et consultation de ses propres entrées |
+| **Admin** | Toutes les entrées + menu admin (options, champs, utilisateurs) |
+
+Un admin peut promouvoir n'importe quel utilisateur via **Admin → Utilisateurs**.
+
+---
+
+## Variables d'environnement clés
+
+| Variable | Description |
+|----------|-------------|
+| `APP_KEY` | Clé de chiffrement — générer avec `php artisan key:generate` |
+| `APP_DEBUG` | `false` en production obligatoirement |
+| `DB_*` | Connexion MySQL |
+| `SESSION_DRIVER` | `database` recommandé en production |
+
+---
+
+## Commandes utiles
+
+```bash
+# Vider tous les caches
+php artisan optimize:clear
+
+# Créer un utilisateur admin manuellement
+php artisan tinker --execute 'App\Models\User::create(["name"=>"Admin","email"=>"admin@example.com","password"=>bcrypt("password"),"is_admin"=>true]);'
+
+# Voir les routes disponibles
+php artisan route:list --except-vendor
+
+# Lancer les tests
+php artisan test
+```

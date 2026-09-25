@@ -22,7 +22,9 @@
                 <div class="hidden sm:flex items-center gap-4 text-sm font-medium">
                     <a href="{{ route('entries.index') }}" class="text-gray-600 hover:text-indigo-600 transition-colors">Saisies</a>
                     @if(auth()->user()->is_admin)
-                        <a href="{{ route('admin.options.index') }}" class="text-gray-600 hover:text-indigo-600 transition-colors">Admin</a>
+                        <a href="{{ route('admin.options.index') }}" class="text-gray-600 hover:text-indigo-600 transition-colors">Options</a>
+                        <a href="{{ route('admin.custom-fields.index') }}" class="text-gray-600 hover:text-indigo-600 transition-colors">Champs</a>
+                        <a href="{{ route('admin.users.index') }}" class="text-gray-600 hover:text-indigo-600 transition-colors">Utilisateurs</a>
                     @endif
                 </div>
             </div>

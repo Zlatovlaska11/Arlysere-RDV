@@ -277,6 +277,56 @@
             </div>
         </div>
 
+        {{-- Custom fields --}}
+        @if($customFields->isNotEmpty())
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-5">
+            <h2 class="font-semibold text-gray-800">Informations complémentaires</h2>
+            @foreach($customFields as $field)
+                @php $existingValue = $isEdit ? $entry->customValues->firstWhere('custom_field_id', $field->id)?->value : old('custom.' . $field->id) @endphp
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ $field->label }}
+                        @if(!$field->is_optional) <span class="text-red-500">*</span> @endif
+                    </label>
+
+                    @if($field->type === 'open')
+                        <input type="text" name="custom[{{ $field->id }}]" value="{{ $existingValue }}"
+                            {{ !$field->is_optional ? 'required' : '' }}
+                            placeholder="{{ $field->label }}…"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+
+                    @elseif($field->type === 'yesno')
+                        <div class="flex gap-2">
+                            <button type="button" data-chip-group="custom_{{ $field->id }}" data-chip-value="1"
+                                class="chip-btn px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all
+                                    {{ $existingValue === '1' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 bg-white text-gray-700 hover:border-green-300' }}">
+                                Oui
+                            </button>
+                            <button type="button" data-chip-group="custom_{{ $field->id }}" data-chip-value="0"
+                                class="chip-btn px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all
+                                    {{ $existingValue === '0' ? 'border-gray-400 bg-gray-50 text-gray-700' : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300' }}">
+                                Non
+                            </button>
+                        </div>
+                        <input type="hidden" name="custom[{{ $field->id }}]" id="input-custom_{{ $field->id }}" value="{{ $existingValue ?? '' }}">
+
+                    @elseif($field->type === 'list')
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($field->options as $opt)
+                                <button type="button" data-chip-group="custom_{{ $field->id }}" data-chip-value="{{ $opt->id }}"
+                                    class="chip-btn px-3 py-1.5 rounded-full border-2 text-sm font-medium transition-all
+                                        {{ $existingValue == $opt->id ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-200 bg-white text-gray-700 hover:border-indigo-300' }}">
+                                    {{ $opt->value }}
+                                </button>
+                            @endforeach
+                        </div>
+                        <input type="hidden" name="custom[{{ $field->id }}]" id="input-custom_{{ $field->id }}" value="{{ $existingValue ?? '' }}">
+                    @endif
+                </div>
+            @endforeach
+        </div>
+        @endif
+
         <div class="flex gap-3 justify-end">
             <a href="{{ route('entries.index') }}" class="px-5 py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                 Annuler

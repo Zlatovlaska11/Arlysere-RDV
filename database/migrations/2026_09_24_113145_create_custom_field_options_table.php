@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('custom_field_options', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('custom_field_id')->constrained()->cascadeOnDelete();
+            $table->string('value');
+            $table->string('color')->nullable();
+            $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
         });
     }

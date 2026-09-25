@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Exports\EntriesExport;
+use App\Models\CustomField;
 use App\Models\Entry;
+use App\Models\EntryCustomValue;
 use App\Models\EntryPerson;
 use App\Models\Option;
 use Illuminate\Http\RedirectResponse;
@@ -64,6 +66,8 @@ class EntryController extends Controller
             $this->savePersons($entry, $request->input('persons', []));
         }
 
+        $this->saveCustomValues($entry, $request->input('custom', []));
+
         return redirect()->route('entries.index')->with('success', 'Saisie enregistrée avec succès.');
     }
 
@@ -88,6 +92,9 @@ class EntryController extends Controller
         } else {
             $entry->persons()->delete();
         }
+
+        $entry->customValues()->delete();
+        $this->saveCustomValues($entry, $request->input('custom', []));
 
         return redirect()->route('entries.index')->with('success', 'Saisie mise à jour avec succès.');
     }
@@ -126,7 +133,7 @@ class EntryController extends Controller
 
     private function findOwnedEntry(int $id): Entry
     {
-        $entry = Entry::with('persons')->findOrFail($id);
+        $entry = Entry::with(['persons', 'customValues'])->findOrFail($id);
 
         if (!auth()->user()->is_admin && $entry->user_id !== auth()->id()) {
             abort(403);
@@ -187,16 +194,33 @@ class EntryController extends Controller
         }
     }
 
+    /** @param array<string, string> $values */
+    private function saveCustomValues(Entry $entry, array $values): void
+    {
+        foreach ($values as $fieldId => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            EntryCustomValue::create([
+                'entry_id'        => $entry->id,
+                'custom_field_id' => (int) $fieldId,
+                'value'           => (string) $value,
+            ]);
+        }
+    }
+
     /** @return array<string, mixed> */
     private function getFormOptions(): array
     {
         return [
-            'locations' => Option::locations()->active()->get(),
-            'communes' => Option::communes()->active()->get(),
-            'themes' => Option::themes()->active()->get(),
+            'locations'    => Option::locations()->active()->get(),
+            'communes'     => Option::communes()->active()->get(),
+            'themes'       => Option::themes()->active()->get(),
             'difficulties' => Option::difficulties()->active()->get(),
-            'ages' => Option::ages()->active()->get(),
-            'statuts' => Option::statuts()->active()->get(),
+            'ages'         => Option::ages()->active()->get(),
+            'statuts'      => Option::statuts()->active()->get(),
+            'customFields' => CustomField::with('options')->active()->get(),
         ];
     }
 }

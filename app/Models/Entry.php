@@ -74,4 +74,9 @@ class Entry extends Model
     {
         return $this->hasMany(EntryPerson::class);
     }
+
+    public function customValues(): HasMany
+    {
+        return $this->hasMany(EntryCustomValue::class);
+    }
 }
